@@ -1,13 +1,19 @@
 <template>
-  <div id="app">
-    <router-view/>
+  <div>
+    <form>
+      <input type="text"><br>
+      <input type="text"><br>
+        <router-link to="/dashboard"><button>submit</button></router-link>
+      <br>
+      <button>clear</button><br>
+    </form>
   </div>
 </template>
 
 <script>
 
 export default {
-  name: 'App',
+  name: 'Login',
   components: {
   }
 }
