@@ -1,0 +1,50 @@
+name: social.soy
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  check_build_upload:
+
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v1
+
+      - name: Cache Node modules
+        id: cache-node-modules
+        uses: actions/cache@v1
+        with:
+          path: ./node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install Dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: npm install
+
+      - name: Npm audit
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: npm audit --prod
+
+      - name: ESLint check
+        run: npm run lint
+
+      - name: Set version and build
+        run: |
+          npm run build --if-present
+
+      - name: Upload
+        env:
+          STORAGE_API_KEY: ${{ secrets.BUNNYCDN_STORAGE_API_KEY }}
+        run: |
+          cd dist
+          find ./ -name '*' -type f -exec curl -s --request PUT --header "AccessKey: $STORAGE_API_KEY" -T {} https://storage.bunnycdn.com/example/{} \;
