@@ -42,9 +42,21 @@ jobs:
         run: |
           npm run build --if-present
 
-      - name: Upload
+      - name: Upload to bunnycdn
         env:
           STORAGE_API_KEY: ${{ secrets.BUNNYCDN_STORAGE_API_KEY }}
         run: |
           cd dist
           find ./ -name '*' -type f -exec curl -s --request PUT --header "AccessKey: $STORAGE_API_KEY" -T {} https://storage.bunnycdn.com/example/{} \;
+
+      - name: Upload to wasabi
+      - uses: jakejarvis/s3-sync-action@master
+        with:
+          args: --acl public-read --follow-symlinks --delete
+        env:
+          AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: 'eu-central-1'
+          AWS_S3_ENDPOINT: "https://s3.wasabisys.com/"
+          SOURCE_DIR: 'dist'
